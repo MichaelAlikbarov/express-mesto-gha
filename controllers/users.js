@@ -29,8 +29,9 @@ const createUser = ((req, res) => {
     .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: `${Object.values(err.errors)
-          .map((err) => err.message).join(', ')}`,
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
+          message: `${Object.values(err.errors)
+            .map(() => err.message).join(', ')}`,
         });
       }
       return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });

@@ -1,7 +1,6 @@
 const Card = require('../models/card');
 const {
   HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_SERVER_ERROR,
 } = require('../utils/constant');
 
@@ -20,7 +19,7 @@ const createCard = (req, res) => {
       if (err.name === 'ValidationError') {
         return res.status(HTTP_STATUS_BAD_REQUEST).send({
           message: `${Object.values(err.errors)
-            .map((err) => err.message).join(', ')}`,
+            .map(() => err.message).join(', ')}`,
         });
       }
       return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
