@@ -2,8 +2,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const { HTTP_STATUS_NOT_FOUND } = require('./utils/constant');
-
-
 const routes = require('./routes/index');
 
 const { PORT = 3000 } = process.env;

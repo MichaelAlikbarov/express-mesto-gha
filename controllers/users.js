@@ -21,8 +21,7 @@ const getUserId = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({
-          message: 'Error: bad request' });
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Error: bad request' });
       } return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
     });
 };
