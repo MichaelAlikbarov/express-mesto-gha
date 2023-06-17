@@ -1,11 +1,13 @@
 const Card = require('../models/card');
 const {
   HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_SERVER_ERROR,
 } = require('../utils/constant');
 
 const getCards = (req, res) => Card.find({})
-  .then((cards) => res.status(200).send(cards));
+  .then((cards) => res.status(200).send(cards))
+  .catch(() => res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' }));
 
 const createCard = (req, res) => {
   const { name, link, likes } = req.body;
@@ -29,7 +31,15 @@ const createCard = (req, res) => {
 const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' }));
+    .orFail(() => {
+      throw new Error('NotFound');
+    })
+    .catch((err) => {
+      if (err.message === 'NotFound') {
+        return res.status(HTTP_STATUS_NOT_FOUND).send({
+          message: 'Error: not found' });
+      } return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
+    });
 };
 
 const putCardLike = (req, res) => {
@@ -39,7 +49,18 @@ const putCardLike = (req, res) => {
     { new: true },
   )
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' }));
+    .orFail(() => {
+      throw new Error('NotFound');
+    })
+    .catch((err) => {
+      if (err.message === 'NotFound') {
+        return res.status(HTTP_STATUS_NOT_FOUND).send({
+          message: 'Error: not found' });
+      }
+      if (err.name === 'CastError') {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Error: bad request' });
+      } return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
+    });
 };
 
 const deleteCardLike = (req, res) => {
@@ -49,7 +70,18 @@ const deleteCardLike = (req, res) => {
     { new: true },
   )
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' }));
+    .orFail(() => {
+      throw new Error('NotFound');
+    })
+    .catch((err) => {
+      if (err.message === 'NotFound') {
+        return res.status(HTTP_STATUS_NOT_FOUND).send({
+          message: 'Error: not found' });
+      }
+      if (err.name === 'CastError') {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Error: bad request' });
+      } return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
+    });
 };
 
 module.exports = {

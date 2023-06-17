@@ -1,7 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const mongoose = require('mongoose');
+const { HTTP_STATUS_NOT_FOUND } = require('./utils/constant');
+
 
 const routes = require('./routes/index');
 
@@ -26,6 +27,10 @@ app.use((req, res, next) => {
 });
 
 app.use(routes);
+
+app.use('*', (req, res) => {
+  res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'page not found' });
+});
 
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);

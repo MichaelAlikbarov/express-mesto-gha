@@ -7,7 +7,7 @@ const {
 
 const getUsers = (req, res) => User.find({})
   .then((users) => res.status(200).send(users))
-  .catch((err) => console.log(err));
+  .catch(() => res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' }));
 
 const getUserId = (req, res) => {
   const { userId } = req.params;
@@ -19,7 +19,12 @@ const getUserId = (req, res) => {
       }
       return res.status(200).send(user);
     })
-    .catch(() => res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
+          message: 'Error: bad request' });
+      } return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
+    });
 };
 
 const createUser = ((req, res) => {
@@ -42,17 +47,33 @@ const updateProfile = (req, res) => {
   const { name, about } = req.body;
   const { userId } = req.params;
 
-  User.findByIdAndUpdate(userId, { name, about }, { new: true })
+  User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' }));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
+          message: `${Object.values(err.errors)
+            .map(() => err.message).join(', ')}`,
+        });
+      }
+      return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
+    });
 };
 
 const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   const { userId } = req.params;
-  User.findByIdAndUpdate(userId, { avatar }, { new: true })
+  User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' }));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
+          message: `${Object.values(err.errors)
+            .map(() => err.message).join(', ')}`,
+        });
+      }
+      return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
+    });
 };
 
 module.exports = {
