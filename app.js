@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const helmet = require('helmet');
 const { HTTP_STATUS_NOT_FOUND } = require('./utils/constant');
 const routes = require('./routes/index');
 
@@ -13,7 +14,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 });
 
 const app = express();
-
+app.use(helmet());
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {

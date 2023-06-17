@@ -6,7 +6,7 @@ const {
 } = require('../utils/constant');
 
 const getCards = (req, res) => Card.find({})
-  .then((cards) => res.status(200).send(cards))
+  .then((cards) => res.send(cards))
   .catch(() => res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' }));
 
 const createCard = (req, res) => {
@@ -30,13 +30,16 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => res.send({ data: card }))
     .orFail(() => {
       throw new Error('NotFound');
     })
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.message === 'NotFound') {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Error: not found' });
+      }
+      if (err.name === 'CastError') {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Error: bad request' });
       } return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
     });
 };
@@ -47,10 +50,10 @@ const putCardLike = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send({ data: card }))
     .orFail(() => {
       throw new Error('NotFound');
     })
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.message === 'NotFound') {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Error: not found' });
@@ -67,10 +70,10 @@ const deleteCardLike = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send({ data: card }))
     .orFail(() => {
       throw new Error('NotFound');
     })
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.message === 'NotFound') {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Error: not found' });
