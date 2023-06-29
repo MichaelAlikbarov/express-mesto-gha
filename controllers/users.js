@@ -3,16 +3,22 @@ const User = require('../models/user');
 const { generateToken } = require('../utils/jwt');
 const {
   HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_SERVER_ERROR,
 } = require('../utils/constant');
 const NotFoundError = require('../errors/not-found-error');
 const BadRequestError = require('../errors/bad-request-error');
 const ConflictError = require('../errors/conflict-error');
 const ForbiddenError = require('../errors/forbidden-error');
 
-const getUsers = (req, res, next) => User.find({})
-  .then((users) => res.status(200).send(users))
-  .catch(next);
+const getUsers = (req, res, next) => {
+  User.find({})
+    .then((users) => {
+      if (!users) {
+        throw new NotFoundError('Нет таких пользователей');
+      }
+      res.status(200).send(users);
+    })
+    .catch(next);
+};
 
 const getUserId = (req, res, next) => {
   const { userId } = req.params;
@@ -79,7 +85,7 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).send({message: 'Не передан email или пароль' });
+    return res.status(400).send({ message: 'Не передан email или пароль' });
   }
 
   return User.findOne({ email }).select('+password')
