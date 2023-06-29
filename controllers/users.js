@@ -53,17 +53,17 @@ const createUser = (req, res, next) => {
     .catch(next);
 };
 
-const updateProfile = (req, res) => {
+const updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user, { name, about }, { new: true, runValidators: true })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(HTTP_STATUS_BAD_REQUEST).next(
+        return next(
           new BadRequestError(`${Object.values(err.errors)
             .map(() => err.message).join(', ')}`),
         );
-      }
+      } next(err);
     });
 };
 
@@ -77,15 +77,15 @@ const updateAvatar = (req, res, next) => {
           new BadRequestError(`${Object.values(err.errors)
             .map(() => err.message).join(', ')}`),
         );
-      }
+      } next(err);
     });
 };
 
-const login = (req, res, next) => {
+const login = (err, req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).send({ message: 'Не передан email или пароль' });
+    throw new NotFoundError('Не передан email или пароль');
   }
 
   return User.findOne({ email }).select('+password')
@@ -93,10 +93,11 @@ const login = (req, res, next) => {
       if (!user) {
         throw new NotFoundError('Такого пользователя не существует');
       }
-      bcrypt.compare(password, user.password, (err, isPasswordMatch) => {
+      bcrypt.compare(password, user.password, (isPasswordMatch) => {
         if (!isPasswordMatch) {
           throw new ForbiddenError('Неправильный логин или пароль');
         }
+        next(err);
         const token = generateToken(user._id);
         return res.status(200).send({ token });
       });

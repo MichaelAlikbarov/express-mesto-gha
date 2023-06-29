@@ -38,7 +38,7 @@ const deleteCard = (req, res, next) => {
       throw new Error('NotFound');
     })
     .then((card) => {
-      if (req.user.id === card.owner.valueOf()) {
+      if (req.user === card.owner.valueOf()) {
         card.deleteOne({ cardForDel });
       } else {
         throw new ConflictError('Не трогай чужую карточку');
