@@ -53,27 +53,25 @@ const updateProfile = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({
-          message: `${Object.values(err.errors)
-            .map(() => err.message).join(', ')}`,
-        });
+        return res.status(HTTP_STATUS_BAD_REQUEST).next(
+          new BadRequestError(`${Object.values(err.errors)
+            .map(() => err.message).join(', ')}`),
+        );
       }
-      return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
     });
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user, { avatar }, { new: true, runValidators: true })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({
-          message: `${Object.values(err.errors)
-            .map(() => err.message).join(', ')}`,
-        });
+        return next(
+          new BadRequestError(`${Object.values(err.errors)
+            .map(() => err.message).join(', ')}`),
+        );
       }
-      return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
     });
 };
 

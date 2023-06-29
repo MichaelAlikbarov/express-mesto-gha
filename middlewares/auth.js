@@ -1,4 +1,3 @@
-// const jwt = require('jsonwebtoken');
 const { verifyToken } = require('../utils/jwt');
 
 module.exports = (req, res, next) => {
