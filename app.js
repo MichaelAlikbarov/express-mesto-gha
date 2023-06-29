@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const { HTTP_STATUS_NOT_FOUND } = require('./utils/constant');
 const routes = require('./routes/index');
+const errorHandler = require('./middlewares/error-handler');
+const { errors } = require('celebrate');
 
 const { PORT = 3000 } = process.env;
 
@@ -17,19 +19,15 @@ const app = express();
 app.use(helmet());
 app.use(bodyParser.json());
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '6489e25c15a7a67d0c11471f',
-  };
-
-  next();
-});
-
 app.use(routes);
 
 app.use('*', (req, res) => {
   res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'page not found' });
 });
+
+app.use(errors());
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);

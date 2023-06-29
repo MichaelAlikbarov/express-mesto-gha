@@ -11,7 +11,7 @@ const getCards = (req, res) => Card.find({})
 
 const createCard = (req, res) => {
   const { name, link, likes } = req.body;
-  const owner = req.user._id;
+  const owner = req.user;
 
   Card.create({
     name, link, owner, likes,
@@ -29,9 +29,18 @@ const createCard = (req, res) => {
 };
 
 const deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  const cardForDel = Card.findById(
+    req.params.cardId,
+  )
     .orFail(() => {
       throw new Error('NotFound');
+    })
+    .then((card) => {
+      if (req.user.id === card.owner.valueOf()) {
+        card.deleteOne({ cardForDel });
+      } else {
+        res.send({ message: 'Не трогай чужую карточку' });
+      }
     })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
@@ -47,7 +56,7 @@ const deleteCard = (req, res) => {
 const putCardLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
+    { $addToSet: { likes: req.user.id } },
     { new: true },
   )
     .orFail(() => {
@@ -67,7 +76,7 @@ const putCardLike = (req, res) => {
 const deleteCardLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } },
+    { $pull: { likes: req.user.id } },
     { new: true },
   )
     .orFail(() => {
