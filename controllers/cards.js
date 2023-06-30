@@ -1,17 +1,13 @@
 const Card = require('../models/card');
-const {
-  HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_SERVER_ERROR,
-} = require('../utils/constant');
 const BadRequestError = require('../errors/bad-request-error');
 const ConflictError = require('../errors/conflict-error');
 const NotFoundError = require('../errors/not-found-error');
 
-const getCards = (req, res) => Card.find({})
-  .then((cards) => res.send(cards))
-  .catch(() => res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' }));
+const getCards = (req, res, next) => Card.find({})
+  .then((cards) => res.status(200).send(cards))
+  .catch(next);
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link, likes } = req.body;
   const owner = req.user;
 
@@ -21,13 +17,13 @@ const createCard = (req, res) => {
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(HTTP_STATUS_BAD_REQUEST).next(
+        return next(
           new BadRequestError()`${Object.values(err.errors)
             .map(() => err.message).join(', ')}`,
         );
       }
-      return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
-    });
+    })
+    .catch(next);
 };
 
 const deleteCard = (req, res, next) => {
@@ -51,7 +47,7 @@ const deleteCard = (req, res, next) => {
       }
       if (err.name === 'CastError') {
         return next(new BadRequestError('Error: bad request'));
-      } return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
+      } next(err);
     });
 };
 
@@ -71,7 +67,7 @@ const putCardLike = (req, res, next) => {
       }
       if (err.name === 'CastError') {
         return next(new BadRequestError('Error: bad request'));
-      } return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
+      } next(err);
     });
 };
 
@@ -91,7 +87,7 @@ const deleteCardLike = (req, res, next) => {
       }
       if (err.name === 'CastError') {
         return next(new BadRequestError('Error: bad request'));
-      } return res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Server Error' });
+      } next(err);
     });
 };
 

@@ -1,13 +1,10 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const { generateToken } = require('../utils/jwt');
-const {
-  HTTP_STATUS_BAD_REQUEST,
-} = require('../utils/constant');
 const NotFoundError = require('../errors/not-found-error');
 const BadRequestError = require('../errors/bad-request-error');
 const ConflictError = require('../errors/conflict-error');
-const ForbiddenError = require('../errors/forbidden-error');
+const UnauthorizedError = require('../errors/unauthorized-error');
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -81,7 +78,7 @@ const updateAvatar = (req, res, next) => {
     });
 };
 
-const login = (err, req, res, next) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -91,13 +88,12 @@ const login = (err, req, res, next) => {
   return User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Такого пользователя не существует');
+        throw new UnauthorizedError('Такого пользователя не существует');
       }
-      bcrypt.compare(password, user.password, (isPasswordMatch) => {
+      bcrypt.compare(password, user.password, (err, isPasswordMatch) => {
         if (!isPasswordMatch) {
-          throw new ForbiddenError('Неправильный логин или пароль');
+          return next(new UnauthorizedError('Неправильный логин или пароль'));
         }
-        next(err);
         const token = generateToken(user._id);
         return res.status(200).send({ token });
       });

@@ -7,12 +7,18 @@ const {
   validationCreateUser,
 } = require('../middlewares/validationHandler');
 const auth = require('../middlewares/auth');
+const NotFoundError = require('../errors/not-found-error');
 
 router.post('/signin', validationLogin, login);
 router.post('/signup', validationCreateUser, createUser);
 
 router.use(auth);
+
 router.use('/', userRoutes);
 router.use('/cards', cardRoutes);
+
+router.use('*', (req, res, next) => {
+  next(new NotFoundError('page not found'));
+});
 
 module.exports = router;
